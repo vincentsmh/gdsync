@@ -12,7 +12,7 @@ function color_msg
 function find_fid()
 {
   ${GDRIVE_CMD} list -q "${DEFAULT_QUERY} and name = \"$1\"" | \
-  grep "$1" | \
+  sed -n '1!p' | \
   awk -F " " {'print $1'}
 }
 
@@ -46,10 +46,12 @@ function upload_file()
 
 function sync_file()
 {
+  echo -ne "Syncing "
+  color_msg 33 "${file_name}" -n
+  echo -ne " ... "
   local src_file="$1"
   local file_name="$(basename "${src_file}")"
-  local fids="$(find_fid ${file_name})"
-  echo -ne "Syncing ${file_name} ... "
+  local fids="$(find_fid "${file_name}")"
 
   if only_one_target $fids; then
     upload_file "${src_file}" "${fids}" > /dev/null 2>&1
