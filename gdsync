@@ -39,9 +39,44 @@ function get_parend_id()
 # upload_file SRC_FILE_PATH TARGET_FID
 function upload_file()
 {
-    local parend_id=$(get_parend_id ${2})
-    ${GDRIVE_CMD} delete ${2}
-    ${GDRIVE_CMD} upload -r -p ${parend_id} "${1}"
+  local parend_id=$(get_parend_id ${2})
+  echo "fid: $2"
+  echo "pid: ${parend_id}"
+  ${GDRIVE_CMD} delete ${2}
+  ${GDRIVE_CMD} upload -r -p ${parend_id} "${1}"
+}
+
+function to_array()
+{
+  local i=1
+  for element in $1; do
+    array[$i]=${element}
+    i=$(( $i + 1 ))
+  done
+}
+
+function show_path()
+{
+  local path=$(${GDRIVE_CMD} info $2 | grep Path | awk -F ": " {'print $2'})
+  echo -e "$1 ${path}"
+}
+
+function select_one_target()
+{
+  echo -e
+  echo -e "We found multiple files with the same file name: "
+  local i=1
+  for fid in $1; do
+    show_path $i ${fid}
+    i=$(( $i + 1 ))
+  done
+
+  echo -e
+  echo -ne "Which one you want to replace? [1] "
+  read select
+  select=${select:-1}
+  to_array "$1"
+  selected_fid=${array[$select]}
 }
 
 function sync_file()
@@ -55,6 +90,9 @@ function sync_file()
 
   if only_one_target $fids; then
     upload_file "${src_file}" "${fids}" > /dev/null 2>&1
+  else
+    select_one_target "${fids}"
+    upload_file "${src_file}" "${selected_fid}" > /dev/null 2>&1
   fi
 
   color_msg 32 "Done"
