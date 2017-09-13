@@ -1,0 +1,69 @@
+#!/bin/bash
+
+DEFAULT_QUERY="trashed = false and 'me' in owners"
+GDRIVE_CMD="gd"
+
+function color_msg
+{
+  echo -e $3 "\033[$1m$2\033[0m"
+}
+
+# find_fid FILE_NAME
+function find_fid()
+{
+  ${GDRIVE_CMD} list -q "${DEFAULT_QUERY} and name = \"$1\"" | \
+  grep "$1" | \
+  awk -F " " {'print $1'}
+}
+
+# del_old_file FILE_NAME
+function del_old_file()
+{
+  ${GDRIVE_CMD} delete ${fid} > /dev/null 2>&1
+}
+
+function only_one_target()
+{
+  if [ $# -gt 1 ]; then
+    return 1
+  else
+    return 0
+  fi
+}
+
+function get_parend_id()
+{
+  ${GDRIVE_CMD} info $1 | grep Parents | awk -F " " {'print $2'}
+}
+
+# upload_file SRC_FILE_PATH TARGET_FID
+function upload_file()
+{
+    local parend_id=$(get_parend_id ${2})
+    ${GDRIVE_CMD} delete ${2}
+    ${GDRIVE_CMD} upload -r -p ${parend_id} "${1}"
+}
+
+function sync_file()
+{
+  local src_file="$1"
+  local file_name="$(basename "${src_file}")"
+  local fids="$(find_fid ${file_name})"
+  echo -ne "Syncing ${file_name} ... "
+
+  if only_one_target $fids; then
+    upload_file "${src_file}" "${fids}" > /dev/null 2>&1
+  fi
+
+  color_msg 32 "Done"
+}
+
+if [ $# -eq 0 ]; then
+  echo -e
+  echo -e "Usage: gdsync FILE_PATH"
+  echo -e
+  echo -e
+  exit 0
+fi
+
+sync_file "$1"
