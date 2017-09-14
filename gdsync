@@ -81,11 +81,12 @@ function select_one_target()
 
 function sync_file()
 {
+  local src_file="$1"
+  local file_name="$(basename "${src_file}")"
+  echo -e
   echo -ne "Syncing "
   color_msg 33 "${file_name}" -n
   echo -ne " ... "
-  local src_file="$1"
-  local file_name="$(basename "${src_file}")"
   local fids="$(find_fid "${file_name}")"
 
   if only_one_target $fids; then
@@ -106,4 +107,6 @@ if [ $# -eq 0 ]; then
   exit 0
 fi
 
-sync_file "$1"
+for f in "$@"; do
+  sync_file "${f}"
+done
