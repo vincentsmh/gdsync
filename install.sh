@@ -33,8 +33,8 @@ function dl_gdrive()
 function install()
 {
   chmod +x gdrive gdsync
-  ${SUDO} mv gdrive /usr/local/bin/gdrive
-  ${SUDO} mv gdsync /usr/local/bin/gdsync
+  ${SUDO} cp gdrive /usr/local/bin/gdrive
+  ${SUDO} cp gdsync /usr/local/bin/gdsync
 }
 
 if not_ubuntu; then
