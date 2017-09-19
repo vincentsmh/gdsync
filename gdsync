@@ -101,7 +101,7 @@ function sync_file()
 
 if [ $# -eq 0 ]; then
   echo -e
-  echo -e "Usage: gdsync FILE_PATH"
+  echo -e "Usage: gdsync FILE_PATH1 [FILE_PATH2]"
   echo -e
   echo -e
   exit 0
