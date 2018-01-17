@@ -2,6 +2,7 @@
 
 DEFAULT_QUERY="trashed = false and 'me' in owners"
 GDRIVE_CMD="gdrive"
+RM_UPLOADED_FILE=0
 
 function color_msg
 {
@@ -40,10 +41,11 @@ function get_parend_id()
 function upload_file()
 {
   local parend_id=$(get_parend_id ${2})
-  echo "fid: $2"
-  echo "pid: ${parend_id}"
   ${GDRIVE_CMD} delete ${2}
   ${GDRIVE_CMD} upload -r -p ${parend_id} "${1}"
+  if [ $? -eq 0 ] && [ $RM_UPLOADED_FILE -eq 1 ]; then
+    rm -rf "$1"
+  fi
 }
 
 function to_array()
@@ -101,10 +103,16 @@ function sync_file()
 
 if [ $# -eq 0 ]; then
   echo -e
-  echo -e "Usage: gdsync FILE_PATH1 [FILE_PATH2]"
+  echo -e "Usage: gdsync [-r] FILE1 [FILE2] [FILE3] ..."
+  echo -e " -r: remove the file after uploading successfully"
   echo -e
   echo -e
   exit 0
+fi
+
+if [ "$1" == "-r" ]; then
+  RM_UPLOADED_FILE=1
+  shift 1
 fi
 
 for f in "$@"; do
